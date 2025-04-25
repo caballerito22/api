@@ -1,17 +1,21 @@
 package com.ciudaddeportiva.api.model;
 
 public class CambiarEstadoRequest {
-    private int    idPartido;
+
+    private int    partidoId;     // ← mismo nombre que usamos en el JSON
     private String nuevoEstado;
 
-    public CambiarEstadoRequest() {}                 // ← obligatorio para Jackson
-
-    public CambiarEstadoRequest(int id, String estado){
-        this.idPartido   = id;
+    public CambiarEstadoRequest() {}              // constructor vacío  ✔️
+    public CambiarEstadoRequest(int id, String estado) {
+        this.partidoId   = id;
         this.nuevoEstado = estado;
     }
 
-    /**  Spring necesita *getters* con estos nombres  */
-    public int    getIdPartido() { return idPartido; }
+    /* getters — Spring los usa para leer */
+    public int    getPartidoId()   { return partidoId;   }
     public String getNuevoEstado() { return nuevoEstado; }
+
+    /* setters — Jackson los necesita para des-serializar */
+    public void setPartidoId(int partidoId)       { this.partidoId = partidoId; }
+    public void setNuevoEstado(String nuevoEstado){ this.nuevoEstado = nuevoEstado; }
 }

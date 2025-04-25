@@ -63,8 +63,15 @@ public class PartidoController {
     /* ---------- cambiar estado ---------- */
     @PatchMapping("/estado")
     public ResponseEntity<?> cambiarEstado(@RequestBody CambiarEstadoRequest r){
-        partidoService.cambiarEstado(r.getIdPartido(),
+        partidoService.cambiarEstado(r.getPartidoId(),
                 EstadoPartido.valueOf(r.getNuevoEstado()));
         return ResponseEntity.ok(Collections.singletonMap("message","Estado actualizado"));
     }
+
+    // ✅ Nuevo método para jugadores: lista pública
+    @GetMapping("/publicos")
+    public List<Partido> partidosPublicos() {
+        return partidoService.getAllPartidos();
+    }
+
 }

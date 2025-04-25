@@ -37,6 +37,14 @@ public class PartidoService {
         //    - Sábados-Domingos: abre 9:00, cierra 21:00
         //    - Añadir buffer de 15min al final, para que todo acabe antes de las 21:00
 
+        //para que no pueda crear partidos en el pasado
+        LocalDate hoy   = LocalDate.now();
+        LocalTime ahora = LocalTime.now();
+
+        if (fecha.isBefore(hoy) || (fecha.isEqual(hoy) && hora.isBefore(ahora))) {
+            throw new RuntimeException("No puedes crear reservas en el pasado");
+        }
+
         DayOfWeek dia = fecha.getDayOfWeek();
         boolean esFinDeSemana = (dia == DayOfWeek.SATURDAY || dia == DayOfWeek.SUNDAY);
 
