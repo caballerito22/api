@@ -3,6 +3,7 @@ package com.ciudaddeportiva.api.controller;
 import com.ciudaddeportiva.api.model.LoginRequest;
 import com.ciudaddeportiva.api.model.Rol;
 import com.ciudaddeportiva.api.model.Usuario;
+import com.ciudaddeportiva.api.model.UsuarioStatsDTO;
 import com.ciudaddeportiva.api.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -47,8 +49,8 @@ public class UsuarioController {
             return ResponseEntity.ok(Map.of(
                     "message", "Login correcto",
                     "rol", usuario.getRol().toString(),
-                    "id", usuario.getId()
-
+                    "id", usuario.getId(),
+                    "email", usuario.getEmail()  // ✅ AÑADIDO
             ));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
@@ -86,5 +88,11 @@ public class UsuarioController {
 
         return ResponseEntity.ok(Collections.singletonMap("message", "Usuario registrado con éxito"));
     }
+
+    @GetMapping("/stats")
+    public List<UsuarioStatsDTO> estadisticasUsuarios() {
+        return usuarioService.obtenerEstadisticasUsuarios();
+    }
+
 
 }

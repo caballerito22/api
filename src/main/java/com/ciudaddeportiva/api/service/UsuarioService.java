@@ -1,11 +1,16 @@
 package com.ciudaddeportiva.api.service;
 
+import com.ciudaddeportiva.api.model.Rol;
 import com.ciudaddeportiva.api.model.Usuario;
+import com.ciudaddeportiva.api.model.UsuarioStatsDTO;
+import com.ciudaddeportiva.api.repository.PartidoRepository;
 import com.ciudaddeportiva.api.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 //Comprueba si el correo ya existe
 //Guarda el usuario si no está registrado
@@ -17,6 +22,7 @@ public class UsuarioService {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+
 
     // Registro de nuevo usuario
     public String registrar(Usuario usuario) {
@@ -61,7 +67,20 @@ public class UsuarioService {
 
 
 
+    @Autowired
+    private PartidoRepository partidoRepository;
 
+    public List<UsuarioStatsDTO> obtenerEstadisticasUsuarios() {
+        List<Usuario> usuarios = usuarioRepository.findAll();
+
+        return usuarios.stream()
+                .filter(u -> u.getRol() != Rol.admin) // solo entrenadores y jugadores
+                .map(u -> {
+                    int reservas = partidoRepository.findByCreadoPor_Id(u.getId()).size();
+                    return new UsuarioStatsDTO(u.getEmail(), u.getRol().toString(), reservas);
+                })
+                .collect(Collectors.toList());
+    }
 
 
 }
