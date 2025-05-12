@@ -1,6 +1,6 @@
 package com.ciudaddeportiva.api.service;
 
-import com.ciudaddeportiva.api.model.CambiarEstadoRequest;
+
 import com.ciudaddeportiva.api.model.EstadoPartido;
 import com.ciudaddeportiva.api.model.Partido;
 import com.ciudaddeportiva.api.model.Usuario;
@@ -18,6 +18,9 @@ public class PartidoService {
 
     @Autowired
     private PartidoRepository partidoRepository;
+
+    @Autowired               // 👉 inyectamos el servicio de notificaciones
+    private NotificacionService notificacionService;
 
     //minutos antes de crear algo después
     private static final  int BUFFER =15;
@@ -90,7 +93,20 @@ public class PartidoService {
         partido.setCreadoPor(creadoPor);
         partido.setTipoReserva(tipoReserva);
 
-        return partidoRepository.save(partido);
+        Partido guardado = partidoRepository.save(partido);
+
+        /* 🚀 Notificación */
+        try {
+            String titulo   = "Nueva " + tipoReserva;
+            String mensaje  = equipoLocal + " vs " + equipoVisitante +
+                    " • " + fecha + " " + hora;
+            notificacionService.enviarNotificacion(titulo, mensaje, null);
+        } catch (Exception e) {
+            // evita que un fallo en OneSignal rompa la creación
+            e.printStackTrace();
+        }
+
+        return guardado;
     }
 
 
@@ -206,8 +222,29 @@ public class PartidoService {
     public void cambiarEstado(int id, EstadoPartido nuevo) {
         Partido p = partidoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Partido no encontrado"));
-        p.setEstado(nuevo);           // OK: setter recibe EstadoPartido
+
+        p.setEstado(nuevo);
         partidoRepository.save(p);
+
+        /* 🚀 Notificación según el nuevo estado */
+        try {
+            String titulo, msg;
+            switch (nuevo) {
+                case jugado:
+                    titulo = "Partido jugado";
+                    msg    = "Tu partido del " + p.getFecha() + " a las " + p.getHora() + " ha sido jugado.";
+                    break;
+                case cancelado:
+                    titulo = "Partido cancelado";
+                    msg    = "Se canceló el partido " + p.getEquipoLocal() + " vs " + p.getEquipoVisitante();
+                    break;
+                default:
+                    return; // otros estados no notifican
+            }
+            notificacionService.enviarNotificacion(titulo, msg, null);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 
