@@ -9,13 +9,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import java.io.IOException;
 
-
-//sirve para que cuando usemos enviarNotificacion(...) se dispara inmediatamente
-//una push-notification a todos tus usuarios registrados en OneSignal
+// Servicio para enviar notificaciones push a OneSignal
 @Service
 public class NotificacionService {
 
-    //cogemos el appId y la restApiKey de application.properties
     @Value("${onesignal.app_id}")
     private String appId;
 
@@ -25,6 +22,7 @@ public class NotificacionService {
     public void enviarNotificacion(String titulo, String mensaje, String imagenUrl) throws IOException {
         OkHttpClient client = new OkHttpClient();
 
+        // Construye el cuerpo del mensaje JSON
         String jsonBody = "{"
                 + "\"app_id\": \"" + appId + "\","
                 + "\"included_segments\": [\"All\"],"
@@ -37,6 +35,7 @@ public class NotificacionService {
 
         jsonBody += "}";
 
+        // Construye la solicitud HTTP
         RequestBody body = RequestBody.create(
                 jsonBody,
                 MediaType.parse("application/json; charset=utf-8")
@@ -45,16 +44,22 @@ public class NotificacionService {
         Request request = new Request.Builder()
                 .url("https://onesignal.com/api/v1/notifications")
                 .post(body)
-                .addHeader("Authorization", "Basic " + restApiKey)
+                .addHeader("Authorization", "Bearer " + restApiKey)
                 .addHeader("Content-Type", "application/json")
                 .build();
 
+        // Envía la solicitud
         try (Response response = client.newCall(request).execute()) {
+            String responseBody = response.body().string();
             if (response.isSuccessful()) {
-                System.out.println("Notificación enviada con éxito: " + response.body().string());
+                System.out.println("=== DEBUG === Notificación enviada con éxito: " + responseBody);
             } else {
-                System.out.println("Error al enviar la notificación: " + response.body().string());
+                System.out.println("=== ERROR  === Falló el envío de la notificación: " + responseBody);
+                throw new RuntimeException("Error en OneSignal: " + responseBody);
             }
+        } catch (Exception e) {
+            System.out.println("=== ERROR  === Excepción al enviar notificación: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }
