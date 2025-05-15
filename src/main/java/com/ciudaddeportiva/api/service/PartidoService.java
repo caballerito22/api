@@ -175,4 +175,9 @@ public boolean haySolapamiento(LocalDate fecha, LocalTime horaInicioNuevo, Strin
     public List<Partido> getAllPartidos() {
         return partidoRepository.findAll();
     }
+
+    public List<Partido> getPartidosPorFecha(LocalDate fecha) {
+        return partidoRepository.findByFecha(fecha);
+    }
+
 }

@@ -4,6 +4,7 @@ import com.ciudaddeportiva.api.model.*;
 import com.ciudaddeportiva.api.service.PartidoService;
 import com.ciudaddeportiva.api.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -73,5 +74,40 @@ public class PartidoController {
     public List<Partido> partidosPublicos() {
         return partidoService.getAllPartidos();
     }
+
+    /* ---------- Horarios ocupados para un día específico ---------- */
+    @GetMapping("/ocupados")
+    public ResponseEntity<?> obtenerHorariosOcupados(
+            @RequestParam
+            @org.springframework.format.annotation.DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate fecha) {
+
+        try {
+            System.out.println("✔ Fecha recibida: " + fecha);
+
+            List<Partido> partidos = partidoService.getPartidosPorFecha(fecha);
+
+            List<HorarioOcupadoResponse> horariosOcupados = partidos.stream()
+                    .map(p -> {
+                        var ini = p.getHora().truncatedTo(java.time.temporal.ChronoUnit.SECONDS);
+                        int duracion =
+                                p.getTipoReserva().equalsIgnoreCase("F11") ? 120 :
+                                        p.getTipoReserva().equalsIgnoreCase("F8")  ?  80 : 90;
+                        var fin = ini.plusMinutes(duracion);
+                        return new HorarioOcupadoResponse(ini.toString(), fin.toString());
+                    })
+                    .toList();
+
+            return ResponseEntity.ok(horariosOcupados);
+
+        } catch (Exception e) {
+            e.printStackTrace();   // ⬅  verás la excepción real en la consola
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Collections.singletonMap("error",
+                            "Error procesando la petición: " + e.getMessage()));
+        }
+    }
+
+
 
 }
