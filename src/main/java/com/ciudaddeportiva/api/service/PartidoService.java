@@ -95,7 +95,7 @@ public class PartidoService {
     /**
      * Cambia el estado de un partido y notifica a los implicados.
      */
-    public void cambiarEstado(int id, EstadoPartido nuevo) {
+    public void cambiarEstado(Long id, EstadoPartido nuevo) {
         Partido p = partidoRepository.findById(id).orElseThrow(() -> new RuntimeException("Partido no encontrado"));
         p.setEstado(nuevo);
         partidoRepository.save(p);
@@ -168,7 +168,7 @@ public boolean haySolapamiento(LocalDate fecha, LocalTime horaInicioNuevo, Strin
         return false;
     }
 
-    public List<Partido> getPartidosByUsuario(int userId) {
+    public List<Partido> getPartidosByUsuario(Long userId) {
         return partidoRepository.findByCreadoPor_Id(userId);
     }
 

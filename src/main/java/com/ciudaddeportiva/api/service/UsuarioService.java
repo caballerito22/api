@@ -12,45 +12,39 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-//Comprueba si el correo ya existe
-//Guarda el usuario si no está registrado
-//Devuelve mensajes de éxito o error
-//Está preparado para usarse en el controlador (@Service)
-
 @Service
 public class UsuarioService {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
 
+    @Autowired
+    private PartidoRepository partidoRepository;
 
     // Registro de nuevo usuario
     public String registrar(Usuario usuario) {
         if (usuarioRepository.existsByEmail(usuario.getEmail())) {
             return "El email ya está en uso";
         }
-
         usuarioRepository.save(usuario);
         return "Usuario registrado correctamente como " + usuario.getRol();
     }
 
-
-
+    // Login
     public Usuario login(String email, String password) {
         Optional<Usuario> usuarioOpt = usuarioRepository.findByEmail(email);
-        if (usuarioOpt.isPresent()) {
-            Usuario usuario = usuarioOpt.get();
-            if (usuario.getPassword().equals(password)) {
-                return usuario;
-            } else {
-                throw new RuntimeException("Contraseña incorrecta");
-            }
-        } else {
+        if (usuarioOpt.isEmpty()) {
             throw new RuntimeException("Usuario no encontrado");
         }
+
+        Usuario usuario = usuarioOpt.get();
+        if (!usuario.getPassword().equals(password)) {
+            throw new RuntimeException("Contraseña incorrecta");
+        }
+        return usuario;
     }
 
-    //para registrar y para el login
+    // Buscar por email
     public Optional<Usuario> buscarPorEmail(String email) {
         return usuarioRepository.findByEmail(email);
     }
@@ -59,28 +53,22 @@ public class UsuarioService {
         usuarioRepository.save(usuario);
     }
 
-    public Usuario findById(int id) {
+    // --- CORREGIDO: usar Long como tipo de ID ---
+    public Usuario findById(Long id) {
         return usuarioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + id));
     }
 
-
-
-
-    @Autowired
-    private PartidoRepository partidoRepository;
-
+    // Estadísticas globales de usuarios
     public List<UsuarioStatsDTO> obtenerEstadisticasUsuarios() {
         List<Usuario> usuarios = usuarioRepository.findAll();
 
         return usuarios.stream()
-                .filter(u -> u.getRol() != Rol.admin) // solo entrenadores y jugadores
+                .filter(u -> u.getRol() != Rol.admin)
                 .map(u -> {
                     int reservas = partidoRepository.findByCreadoPor_Id(u.getId()).size();
                     return new UsuarioStatsDTO(u.getEmail(), u.getRol().toString(), reservas);
                 })
                 .collect(Collectors.toList());
     }
-
-
 }

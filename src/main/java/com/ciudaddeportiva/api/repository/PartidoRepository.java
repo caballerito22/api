@@ -7,7 +7,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
-public interface PartidoRepository extends JpaRepository<Partido, Integer> {
+public interface PartidoRepository extends JpaRepository<Partido, Long> {
 
     // Para detectar un partido exactamente en la misma fecha y hora
     List<Partido> findByFechaAndHora(LocalDate fecha, LocalTime hora);
@@ -16,7 +16,7 @@ public interface PartidoRepository extends JpaRepository<Partido, Integer> {
     List<Partido> findByFecha(LocalDate fecha);
 
     // Devuelve todos los partidos que creó un usuario dado
-    List<Partido> findByCreadoPor_Id(int userId);
+    List<Partido> findByCreadoPor_Id(Long userId);
 
     /** usado por el scheduler */
     List<Partido> findByEstado(EstadoPartido estado);

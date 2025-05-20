@@ -8,7 +8,7 @@ public class PartidoRequest {
     private String equipoLocal;
     private String equipoVisitante;
     private String tipoReserva;   // "partido" o "entrenamiento"
-    private int usuarioId;        // ID del usuario creador
+    private Long usuarioId;        // ID del usuario creador
 
     // Getters y setters
 
@@ -54,10 +54,11 @@ public class PartidoRequest {
         this.tipoReserva = tipoReserva;
     }
 
-    public int getUsuarioId() {
+    public Long getUsuarioId() {
         return usuarioId;
     }
-    public void setUsuarioId(int usuarioId) {
+
+    public void setUsuarioId(Long usuarioId) {
         this.usuarioId = usuarioId;
     }
 }

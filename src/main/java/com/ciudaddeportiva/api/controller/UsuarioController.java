@@ -4,6 +4,7 @@ import com.ciudaddeportiva.api.model.LoginRequest;
 import com.ciudaddeportiva.api.model.Rol;
 import com.ciudaddeportiva.api.model.Usuario;
 import com.ciudaddeportiva.api.model.UsuarioStatsDTO;
+import com.ciudaddeportiva.api.repository.UsuarioRepository;
 import com.ciudaddeportiva.api.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -29,6 +30,15 @@ public class UsuarioController {
 
     @Autowired
     private UsuarioService usuarioService;
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
+    // 👇 Añade esto dentro de la clase
+    @GetMapping("/jugadores")
+    public List<Usuario> getJugadores() {
+        return usuarioRepository.findByRol(Rol.jugador);
+    }
 
     // LOGIN
     @PostMapping("/login")

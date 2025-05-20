@@ -45,13 +45,13 @@ public class PartidoController {
 
     /* ---------- mis partidos (entrenador / jugador) ---------- */
     @GetMapping("/mis/{userId}")
-    public List<Partido> obtenerMisPartidos(@PathVariable int userId) {
+    public List<Partido> obtenerMisPartidos(@PathVariable Long userId) {
         return partidoService.getPartidosByUsuario(userId);
     }
 
     /* ---------- todos los partidos (solo admin) ---------- */
     @GetMapping("/todos")
-    public ResponseEntity<?> todosPartidos(@RequestParam int userId) {
+    public ResponseEntity<?> todosPartidos(@RequestParam Long userId) {
         Usuario u = usuarioService.findById(userId);
         if (u.getRol() != Rol.admin) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
