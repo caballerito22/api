@@ -15,13 +15,14 @@ public interface ConvocatoriaRepository extends JpaRepository<Convocatoria, Long
     List<Convocatoria> findByPartidoId(Long partidoId);
     List<Convocatoria> findByJugadorId(Long jugadorId);
     boolean existsByPartidoIdAndJugadorId(Long partidoId, Long jugadorId);
+    /* IDs de jugadores ya ocupados en el intervalo exacto */
     @Query("""
-       SELECT c.jugador.id
-       FROM   Convocatoria c
-       WHERE  c.partido.fecha = :fecha
-       AND    c.partido.hora  = :hora
-       """)
+           select distinct c.jugador.id
+           from Convocatoria c
+           where c.partido.fecha = :fecha
+             and c.partido.hora   = :hora
+           """)
     List<Long> findJugadoresOcupados(
             @Param("fecha") LocalDate fecha,
-            @Param("hora") LocalTime hora);
+            @Param("hora")  LocalTime hora);
 }

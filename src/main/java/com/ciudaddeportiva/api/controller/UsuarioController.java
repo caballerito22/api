@@ -109,8 +109,8 @@ public class UsuarioController {
 
     @GetMapping("/jugadores-disponibles")
     public List<Usuario> jugadoresDisponibles(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha,
-            @RequestParam @DateTimeFormat(pattern = "HH:mm") LocalTime hora) {
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)  LocalDate fecha,
+            @RequestParam @DateTimeFormat(pattern = "HH:mm")LocalTime hora) {
         return usuarioService.jugadoresDisponibles(fecha, hora);
     }
 

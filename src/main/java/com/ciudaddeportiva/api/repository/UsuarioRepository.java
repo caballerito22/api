@@ -19,13 +19,16 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     //para la convocatoria
     List<Usuario> findByRol(Rol rol);
 
+    /* Jugadores cuyo id NO está en la lista de ocupados */
     @Query("""
+           select u
            from Usuario u
            where u.rol = :rol
              and ( :ocupados is null or u.id not in :ocupados )
            """)
-    List<Usuario> findJugadoresLibres(@Param("rol") Rol rol,
-                                      @Param("ocupados") List<Long> ocupados);      // ids puede ser null/[] sin problema
+    List<Usuario> findJugadoresLibres(
+            @Param("rol")      Rol rol,
+            @Param("ocupados") List<Long> ocupados);
 
 
 }
