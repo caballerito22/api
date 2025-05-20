@@ -92,32 +92,44 @@ public class PartidoController {
     @GetMapping("/ocupados")
     public ResponseEntity<?> obtenerHorariosOcupados(
             @RequestParam
-            @org.springframework.format.annotation.DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-            LocalDate fecha) {
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate fecha,
+            @RequestParam(required = false) String campo) {          // ← nuevo parámetro opcional
 
         try {
-            System.out.println("✔ Fecha recibida: " + fecha);
+            System.out.println("✔ Fecha recibida: " + fecha +
+                    (campo != null ? " | campo=" + campo : ""));
 
-            List<Partido> partidos = partidoService.getPartidosPorFecha(fecha);
+            /* ── 1. Recuperar partidos ── */
+            List<Partido> partidos = (campo == null || campo.isBlank())
+                    ? partidoService.getPartidosPorFecha(fecha)
+                    : partidoService.getPartidosPorFechaYCampo(fecha, campo);
 
-            List<HorarioOcupadoResponse> horariosOcupados = partidos.stream()
+            /* ── 2. Mapear a intervalos ocupados ── */
+            List<HorarioOcupadoResponse> horarios = partidos.stream()
                     .map(p -> {
                         var ini = p.getHora().truncatedTo(java.time.temporal.ChronoUnit.SECONDS);
-                        int duracion =
-                                p.getTipoReserva().equalsIgnoreCase("F11") ? 120 :
-                                        p.getTipoReserva().equalsIgnoreCase("F8")  ?  80 : 90;
-                        var fin = ini.plusMinutes(duracion);
+
+                        /* Duración según campo */
+                        int duracionMin;
+                        String c = p.getCampo().toLowerCase();
+                        if (c.contains("f11"))      duracionMin = 120;   // 2 h
+                        else if (c.contains("f8"))  duracionMin =  80;   // 1 h 20 min
+                        else                        duracionMin =  90;   // por defecto
+
+                        var fin = ini.plusMinutes(duracionMin);
                         return new HorarioOcupadoResponse(ini.toString(), fin.toString());
                     })
                     .toList();
 
-            return ResponseEntity.ok(horariosOcupados);
+            return ResponseEntity.ok(horarios);
 
         } catch (Exception e) {
-            e.printStackTrace();   // ⬅  verás la excepción real en la consola
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Collections.singletonMap("error",
-                            "Error procesando la petición: " + e.getMessage()));
+            e.printStackTrace();
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(Collections.singletonMap(
+                            "error", "Error procesando la petición: " + e.getMessage()));
         }
     }
 

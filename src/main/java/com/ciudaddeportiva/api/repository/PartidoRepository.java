@@ -21,4 +21,8 @@ public interface PartidoRepository extends JpaRepository<Partido, Long> {
     /** usado por el scheduler */
     List<Partido> findByEstado(EstadoPartido estado);
 
+    // PartidoRepository.java
+    List<Partido> findByFechaAndCampoIgnoreCase(LocalDate fecha, String campo);
+
+
 }

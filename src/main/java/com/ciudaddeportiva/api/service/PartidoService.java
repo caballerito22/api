@@ -202,4 +202,9 @@ public class PartidoService {
         return partidoRepo.findByFecha(fecha);
     }
 
+    // PartidoService.java
+    public List<Partido> getPartidosPorFechaYCampo(LocalDate fecha, String campo) {
+        return partidoRepo.findByFechaAndCampoIgnoreCase(fecha, campo);
+    }
+
 }
