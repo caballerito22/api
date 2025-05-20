@@ -3,6 +3,8 @@ package com.ciudaddeportiva.api.repository;
 import com.ciudaddeportiva.api.model.Rol;
 import com.ciudaddeportiva.api.model.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,5 +18,14 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
     //para la convocatoria
     List<Usuario> findByRol(Rol rol);
+
+    @Query("""
+           from Usuario u
+           where u.rol = :rol
+             and ( :ocupados is null or u.id not in :ocupados )
+           """)
+    List<Usuario> findJugadoresLibres(@Param("rol") Rol rol,
+                                      @Param("ocupados") List<Long> ocupados);      // ids puede ser null/[] sin problema
+
 
 }

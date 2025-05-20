@@ -30,6 +30,7 @@ public class ConvocatoriaController {
         return ResponseEntity.ok(convocatoriaService.obtenerConvocatoriasPorPartido(partidoId));
     }
 
+    //para ver quién ha sido convocado a un partido (jugador)
     @GetMapping("/jugador/{jugadorId}")
     public ResponseEntity<List<Convocatoria>> obtenerConvocatoriasPorJugador(@PathVariable Long jugadorId) {
         return ResponseEntity.ok(convocatoriaService.obtenerConvocatoriasPorJugador(jugadorId));

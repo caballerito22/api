@@ -7,10 +7,13 @@ import com.ciudaddeportiva.api.model.UsuarioStatsDTO;
 import com.ciudaddeportiva.api.repository.UsuarioRepository;
 import com.ciudaddeportiva.api.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -103,6 +106,14 @@ public class UsuarioController {
     public List<UsuarioStatsDTO> estadisticasUsuarios() {
         return usuarioService.obtenerEstadisticasUsuarios();
     }
+
+    @GetMapping("/jugadores-disponibles")
+    public List<Usuario> jugadoresDisponibles(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha,
+            @RequestParam @DateTimeFormat(pattern = "HH:mm") LocalTime hora) {
+        return usuarioService.jugadoresDisponibles(fecha, hora);
+    }
+
 
 
 }

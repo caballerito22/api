@@ -3,11 +3,14 @@ package com.ciudaddeportiva.api.service;
 import com.ciudaddeportiva.api.model.Rol;
 import com.ciudaddeportiva.api.model.Usuario;
 import com.ciudaddeportiva.api.model.UsuarioStatsDTO;
+import com.ciudaddeportiva.api.repository.ConvocatoriaRepository;
 import com.ciudaddeportiva.api.repository.PartidoRepository;
 import com.ciudaddeportiva.api.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -20,6 +23,10 @@ public class UsuarioService {
 
     @Autowired
     private PartidoRepository partidoRepository;
+
+    @Autowired                          // 🔹 añade la inyección que faltaba
+    private ConvocatoriaRepository convocatoriaRepository;
+
 
     // Registro de nuevo usuario
     public String registrar(Usuario usuario) {
@@ -71,4 +78,12 @@ public class UsuarioService {
                 })
                 .collect(Collectors.toList());
     }
+
+    public List<Usuario> jugadoresDisponibles(LocalDate fecha, LocalTime hora) {
+        List<Long> ocupados = convocatoriaRepository.findJugadoresOcupados(fecha, hora);
+        return usuarioRepository.findJugadoresLibres(Rol.jugador,
+                ocupados.isEmpty() ? null : ocupados);
+    }
+
+
 }
