@@ -1,25 +1,29 @@
 package com.ciudaddeportiva.api.service;
 
+import com.ciudaddeportiva.api.model.Convocatoria;
 import com.ciudaddeportiva.api.model.EstadoPartido;
 import com.ciudaddeportiva.api.model.Partido;
 import com.ciudaddeportiva.api.model.Usuario;
+import com.ciudaddeportiva.api.repository.ConvocatoriaRepository;
 import com.ciudaddeportiva.api.repository.PartidoRepository;
+import com.ciudaddeportiva.api.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class PartidoService {
 
-    @Autowired
-    private PartidoRepository partidoRepository;
-
-    @Autowired // 👉 inyectamos el servicio de notificaciones
-    private NotificacionService notificacionService;
+    @Autowired private PartidoRepository       partidoRepo;
+    @Autowired private UsuarioRepository usuarioRepo;
+    @Autowired private ConvocatoriaRepository convocatoriaRepo;   // ⭐️
+    @Autowired private NotificacionService     notificacionService;
 
     // minutos de margen antes/después de cada reserva
     private static final int BUFFER = 15;
@@ -27,15 +31,18 @@ public class PartidoService {
     /**
      * Crea un nuevo partido o entrenamiento y dispara la notificación correspondiente.
      */
+    /* ╔══════════════ CREAR PARTIDO + CONVOCADOS ═════════════╗ */
     public Partido crearPartido(LocalDate fecha,
                                 LocalTime hora,
                                 String campo,
                                 String equipoLocal,
                                 String equipoVisitante,
                                 Usuario creadoPor,
-                                String tipoReserva) {
+                                String tipoReserva,
+                                List<Long> idsConvocados) {
 
         System.out.println("=== DEBUG === Creando " + tipoReserva + " – " + equipoLocal + " vs " + equipoVisitante);
+
 
         /* 1️⃣ Validaciones de fecha y hora */
         LocalDate hoy = LocalDate.now();
@@ -65,17 +72,29 @@ public class PartidoService {
             throw new RuntimeException("Ya existe una reserva que se solapa con ese horario y campo");
         }
 
-        /* 3️⃣ Persistencia */
-        Partido partido = new Partido();
-        partido.setFecha(fecha);
-        partido.setHora(hora);
-        partido.setCampo(campo);
-        partido.setEquipoLocal(equipoLocal);
-        partido.setEquipoVisitante(equipoVisitante);
-        partido.setEstado(EstadoPartido.pendiente);
-        partido.setCreadoPor(creadoPor);
-        partido.setTipoReserva(tipoReserva);
-        Partido guardado = partidoRepository.save(partido);
+        /* ── 1. Persistir partido ── */
+        Partido p = new Partido();
+        p.setFecha(fecha); p.setHora(hora); p.setCampo(campo);
+        p.setEquipoLocal(equipoLocal); p.setEquipoVisitante(equipoVisitante);
+        p.setEstado(EstadoPartido.pendiente); p.setCreadoPor(creadoPor);
+        p.setTipoReserva(tipoReserva);
+        Partido guardado = partidoRepo.save(p);
+
+        /* ── 2. Persistir convocatorias (si vienen IDs) ── */
+        if (idsConvocados != null && !idsConvocados.isEmpty()) {
+            List<Convocatoria> lot = new ArrayList<>();
+            for (Long idJugador : idsConvocados) {
+                Usuario jugador = usuarioRepo.findById(idJugador)
+                        .orElseThrow(() -> new RuntimeException("Jugador no existe: " + idJugador));
+
+                Convocatoria c = new Convocatoria();
+                c.setPartido(guardado);
+                c.setJugador(jugador);
+                c.setFechaConvocatoria(LocalDateTime.now()); // o LocalDateTime.now()
+                lot.add(c);
+            }
+            convocatoriaRepo.saveAll(lot);
+        }
 
         /* 4️⃣ Notificación */
         String titulo = "Nueva " + tipoReserva;
@@ -90,15 +109,18 @@ public class PartidoService {
         }
 
         return guardado;
+
+
+
     }
 
     /**
      * Cambia el estado de un partido y notifica a los implicados.
      */
     public void cambiarEstado(Long id, EstadoPartido nuevo) {
-        Partido p = partidoRepository.findById(id).orElseThrow(() -> new RuntimeException("Partido no encontrado"));
+        Partido p = partidoRepo.findById(id).orElseThrow(() -> new RuntimeException("Partido no encontrado"));
         p.setEstado(nuevo);
-        partidoRepository.save(p);
+        partidoRepo.save(p);
 
         String titulo;
         String msg;
@@ -113,37 +135,37 @@ public class PartidoService {
                 break;
             default:
                 return; // otros estados no generan notificación
-    }
+        }
 
         try {
-        System.out.println("=== DEBUG === Enviando notificación de cambio de estado: " + titulo);
-        notificacionService.enviarNotificacion(titulo, msg, null);
-        System.out.println("=== DEBUG === Notificación de cambio de estado enviada");
-    } catch (Exception e) {
-        System.out.println("=== ERROR  === Falló la notificación de cambio de estado: " + e.getMessage());
-        e.printStackTrace();
+            System.out.println("=== DEBUG === Enviando notificación de cambio de estado: " + titulo);
+            notificacionService.enviarNotificacion(titulo, msg, null);
+            System.out.println("=== DEBUG === Notificación de cambio de estado enviada");
+        } catch (Exception e) {
+            System.out.println("=== ERROR  === Falló la notificación de cambio de estado: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
-}
 
-/**
- * Comprueba si la nueva reserva se solapa con otras o no deja margen suficiente.
- */
-public boolean haySolapamiento(LocalDate fecha, LocalTime horaInicioNuevo, String campoNuevo, String tipoReserva) {
-    int duracionNuevo = tipoReserva.equalsIgnoreCase("entrenamiento") ? 90 : getDuracionPartido(campoNuevo);
-    LocalTime horaFinNuevo = horaInicioNuevo.plusMinutes(duracionNuevo);
-    LocalTime horaFinNuevoBuffer = horaFinNuevo.plusMinutes(BUFFER);
+    /**
+     * Comprueba si la nueva reserva se solapa con otras o no deja margen suficiente.
+     */
+    public boolean haySolapamiento(LocalDate fecha, LocalTime horaInicioNuevo, String campoNuevo, String tipoReserva) {
+        int duracionNuevo = tipoReserva.equalsIgnoreCase("entrenamiento") ? 90 : getDuracionPartido(campoNuevo);
+        LocalTime horaFinNuevo = horaInicioNuevo.plusMinutes(duracionNuevo);
+        LocalTime horaFinNuevoBuffer = horaFinNuevo.plusMinutes(BUFFER);
 
-    for (Partido existente : partidoRepository.findByFecha(fecha)) {
-        if (!camposEnConflicto(campoNuevo, existente.getCampo())) continue;
+        for (Partido existente : partidoRepo.findByFecha(fecha)) {
+            if (!camposEnConflicto(campoNuevo, existente.getCampo())) continue;
 
-        int duracionExist = existente.getTipoReserva().equalsIgnoreCase("entrenamiento") ? 90 : getDuracionPartido(existente.getCampo());
-        LocalTime iniExist = existente.getHora();
-        LocalTime finExist = iniExist.plusMinutes(duracionExist);
-        LocalTime finExistBuf = finExist.plusMinutes(BUFFER);
+            int duracionExist = existente.getTipoReserva().equalsIgnoreCase("entrenamiento") ? 90 : getDuracionPartido(existente.getCampo());
+            LocalTime iniExist = existente.getHora();
+            LocalTime finExist = iniExist.plusMinutes(duracionExist);
+            LocalTime finExistBuf = finExist.plusMinutes(BUFFER);
 
-        boolean solapan = horaInicioNuevo.isBefore(finExist) && horaFinNuevo.isAfter(iniExist);
-        boolean sinMargenDespues = horaFinNuevoBuffer.isAfter(iniExist) && horaFinNuevo.isBefore(iniExist);
-        boolean sinMargenAntes = !horaInicioNuevo.isBefore(finExist) && horaInicioNuevo.isBefore(finExistBuf);
+            boolean solapan = horaInicioNuevo.isBefore(finExist) && horaFinNuevo.isAfter(iniExist);
+            boolean sinMargenDespues = horaFinNuevoBuffer.isAfter(iniExist) && horaFinNuevo.isBefore(iniExist);
+            boolean sinMargenAntes = !horaInicioNuevo.isBefore(finExist) && horaInicioNuevo.isBefore(finExistBuf);
             if (solapan || sinMargenDespues || sinMargenAntes) return true;
         }
         return false;
@@ -169,15 +191,15 @@ public boolean haySolapamiento(LocalDate fecha, LocalTime horaInicioNuevo, Strin
     }
 
     public List<Partido> getPartidosByUsuario(Long userId) {
-        return partidoRepository.findByCreadoPor_Id(userId);
+        return partidoRepo.findByCreadoPor_Id(userId);
     }
 
     public List<Partido> getAllPartidos() {
-        return partidoRepository.findAll();
+        return partidoRepo.findAll();
     }
 
     public List<Partido> getPartidosPorFecha(LocalDate fecha) {
-        return partidoRepository.findByFecha(fecha);
+        return partidoRepo.findByFecha(fecha);
     }
 
 }

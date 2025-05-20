@@ -1,5 +1,7 @@
 package com.ciudaddeportiva.api.model;
 
+import java.util.List;
+
 public class PartidoRequest {
 
     private String fecha;          // formato "2025-05-05"
@@ -9,6 +11,7 @@ public class PartidoRequest {
     private String equipoVisitante;
     private String tipoReserva;   // "partido" o "entrenamiento"
     private Long usuarioId;        // ID del usuario creador
+    private List<Long> convocados;          // ← NUEVO
 
     // Getters y setters
 
@@ -57,6 +60,9 @@ public class PartidoRequest {
     public Long getUsuarioId() {
         return usuarioId;
     }
+
+    public List<Long> getConvocados(){return convocados;}
+    public void setConvocados(List<Long> c){this.convocados = c;}
 
     public void setUsuarioId(Long usuarioId) {
         this.usuarioId = usuarioId;

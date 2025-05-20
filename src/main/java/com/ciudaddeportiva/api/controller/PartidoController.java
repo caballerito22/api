@@ -14,6 +14,8 @@ import java.time.LocalTime;
 import java.util.Collections;
 import java.util.List;
 
+import static com.ciudaddeportiva.api.model.Rol.entrenador;
+
 @RestController
 @RequestMapping("/api/partidos")
 @CrossOrigin(origins = "*")
@@ -26,16 +28,27 @@ public class PartidoController {
     @PostMapping("/crear")
     public ResponseEntity<?> crearPartido(@RequestBody PartidoRequest req) {
         try {
-            LocalDate fecha = LocalDate.parse(req.getFecha());
-            LocalTime hora  = LocalTime.parse(req.getHora());
-            Usuario   user  = usuarioService.findById(req.getUsuarioId());
+            // 1) Parsear fecha y hora
+            LocalDate fecha = LocalDate.parse(req.getFecha());   // "2025-05-23"
+            LocalTime hora  = LocalTime.parse(req.getHora());    // "17:30"
 
-            Partido nuevo = partidoService.crearPartido(
-                    fecha, hora, req.getCampo(),
-                    req.getEquipoLocal(), req.getEquipoVisitante(),
-                    user, req.getTipoReserva());
+            // 2) Recuperar el usuario creador
+            Usuario creador = usuarioService.findById(req.getUsuarioId());
 
-            return ResponseEntity.ok(nuevo);
+            // 3) Crear el partido (con posibles convocados)
+            Partido partido = partidoService.crearPartido(
+                    fecha,
+                    hora,
+                    req.getCampo(),
+                    req.getEquipoLocal(),
+                    req.getEquipoVisitante(),
+                    creador,                       // <-- Usuario, no Rol
+                    req.getTipoReserva(),
+                    req.getConvocados()            // lista de Long con IDs de jugadores
+            );
+
+            // 4) Respuesta OK
+            return ResponseEntity.ok(partido);
 
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
