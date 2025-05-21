@@ -127,7 +127,36 @@ public class UsuarioController {
         return usuarioService.jugadoresDisponibles(fecha, hora);
     }
 
+    //para borrar el usuario
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> eliminar(@PathVariable Long id,
+                                      @RequestParam(required = false) Long adminId) {
+        // Si no se proporciona adminId, entendemos que es el propio usuario quien quiere borrarse
+        if (adminId == null) {
+            usuarioService.deleteById(id);
+            return ResponseEntity.ok(Map.of("message", "Usuario eliminado por sí mismo"));
+        }
+
+        // Si lo hace el admin, comprobamos su rol
+        Usuario admin = usuarioService.findById(adminId);
+        if (admin.getRol() != Rol.admin)
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+
+        usuarioService.deleteById(id);
+        return ResponseEntity.ok(Map.of("message", "Usuario eliminado por admin"));
+    }
 
 
+
+    // GET /api/usuarios   (solo admin)
+    @GetMapping
+    public ResponseEntity<?> listarTodos(@RequestParam Long adminId) {
+        Usuario admin = usuarioService.findById(adminId);
+        if (admin.getRol() != Rol.admin) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error","Solo el admin puede ver todos los usuarios"));
+        }
+        return ResponseEntity.ok(usuarioRepository.findAll());
+    }
 
 }

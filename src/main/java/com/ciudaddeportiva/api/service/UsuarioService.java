@@ -85,6 +85,10 @@ public class UsuarioService {
                 ocupados.isEmpty() ? null : ocupados);
     }
 
+    //para borrar el usuario
+    public void deleteById(Long id) { usuarioRepository.deleteById(id); }
+
+
 
 
 
