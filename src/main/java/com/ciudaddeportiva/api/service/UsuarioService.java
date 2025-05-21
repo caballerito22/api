@@ -74,7 +74,7 @@ public class UsuarioService {
                 .filter(u -> u.getRol() != Rol.admin)
                 .map(u -> {
                     int reservas = partidoRepository.findByCreadoPor_Id(u.getId()).size();
-                    return new UsuarioStatsDTO(u.getEmail(), u.getRol().toString(), reservas);
+                    return new UsuarioStatsDTO(u.getId(), u.getEmail(), u.getRol().toString(), reservas);
                 })
                 .collect(Collectors.toList());
     }
@@ -87,6 +87,26 @@ public class UsuarioService {
 
     //para borrar el usuario
     public void deleteById(Long id) { usuarioRepository.deleteById(id); }
+
+    // UsuarioService.java   (método nuevo)
+    public List<UsuarioStatsDTO> listadoAdmin() {
+        return usuarioRepository.findAll().stream()
+                .map(u -> {
+                    Integer total = null;
+                    if (u.getRol() == Rol.entrenador || u.getRol() == Rol.admin) {
+                        total = partidoRepository.countByCreadoPor_Id(u.getId());
+                    }
+                    return new UsuarioStatsDTO(
+                            u.getId(),
+                            u.getEmail(),
+                            u.getRol().toString(),
+                            total
+                    );
+                })
+                .toList();
+    }
+
+
 
 
 

@@ -24,5 +24,8 @@ public interface PartidoRepository extends JpaRepository<Partido, Long> {
     // PartidoRepository.java
     List<Partido> findByFechaAndCampoIgnoreCase(LocalDate fecha, String campo);
 
+    // Cuenta los partidos donde el campo creadoPor tiene ese ID
+    int countByCreadoPor_Id(Long id);
+
 
 }

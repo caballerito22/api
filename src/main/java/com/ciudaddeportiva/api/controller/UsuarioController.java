@@ -11,6 +11,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -121,11 +122,6 @@ public class UsuarioController {
         return usuarioService.jugadoresDisponibles(fecha, hora);
     }*/
 
-    @GetMapping("/jugadores/disponibles")
-    public List<Usuario> libres(@RequestParam LocalDate fecha,
-                                @RequestParam LocalTime hora){
-        return usuarioService.jugadoresDisponibles(fecha, hora);
-    }
 
     //para borrar el usuario
     @DeleteMapping("/{id}")
@@ -157,6 +153,14 @@ public class UsuarioController {
                     .body(Map.of("error","Solo el admin puede ver todos los usuarios"));
         }
         return ResponseEntity.ok(usuarioRepository.findAll());
+    }
+
+    @GetMapping("/admin/listado")
+    public List<UsuarioStatsDTO> listadoAdmin(@RequestParam Long adminId) {
+        if (usuarioService.findById(adminId).getRol() != Rol.admin) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+        return usuarioService.listadoAdmin();
     }
 
 }

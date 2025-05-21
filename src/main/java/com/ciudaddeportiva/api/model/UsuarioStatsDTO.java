@@ -1,25 +1,20 @@
 package com.ciudaddeportiva.api.model;
 
 public class UsuarioStatsDTO {
+
+    private Long id;
     private String email;
     private String rol;
-    private int cantidadReservas;
+    private Integer reservas;   // null  →  “-” en la app
 
-    public UsuarioStatsDTO(String email, String rol, int cantidadReservas) {
+    public UsuarioStatsDTO(Long id, String email, String rol, Integer reservas) {
+        this.id = id;
         this.email = email;
         this.rol = rol;
-        this.cantidadReservas = cantidadReservas;
+        this.reservas = reservas;
     }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public String getRol() {
-        return rol;
-    }
-
-    public int getCantidadReservas() {
-        return cantidadReservas;
-    }
+    public Long getId()       { return id; }
+    public String getEmail()  { return email; }
+    public String getRol()    { return rol; }
+    public Integer getReservas() { return reservas; }
 }
