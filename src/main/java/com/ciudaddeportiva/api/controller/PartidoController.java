@@ -1,6 +1,7 @@
 package com.ciudaddeportiva.api.controller;
 
 import com.ciudaddeportiva.api.model.*;
+import com.ciudaddeportiva.api.repository.PartidoRepository;
 import com.ciudaddeportiva.api.service.PartidoService;
 import com.ciudaddeportiva.api.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,8 @@ public class PartidoController {
 
     @Autowired private PartidoService partidoService;
     @Autowired private UsuarioService usuarioService;
+    @Autowired private PartidoRepository partidoRepository;
+
 
     /* ---------- crear partido / entrenamiento ---------- */
     @PostMapping("/crear")
@@ -132,6 +135,16 @@ public class PartidoController {
                             "error", "Error procesando la petición: " + e.getMessage()));
         }
     }
+
+    @DeleteMapping("/partido/{id}")
+    public ResponseEntity<?> eliminarPartido(@PathVariable Long id) {
+        if (!partidoRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        partidoRepository.deleteById(id);
+        return ResponseEntity.ok().build();
+    }
+
 
 
 
