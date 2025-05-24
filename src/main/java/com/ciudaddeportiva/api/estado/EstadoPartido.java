@@ -1,4 +1,4 @@
-package com.ciudaddeportiva.api.model;
+package com.ciudaddeportiva.api.estado;
 
 public enum EstadoPartido {
     pendiente,

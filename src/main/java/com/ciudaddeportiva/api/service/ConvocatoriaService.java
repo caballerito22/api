@@ -52,7 +52,4 @@ public class ConvocatoriaService {
         return convocatoriaRepository.findByJugadorId(jugadorId);
     }
 
-    public void eliminarConvocatoria(Long convocatoriaId) {
-        convocatoriaRepository.deleteById(convocatoriaId);
-    }
 }

@@ -1,4 +1,4 @@
-package com.ciudaddeportiva.api.controller;
+package com.ciudaddeportiva.api.controllerLogica;
 
 import com.ciudaddeportiva.api.model.LoginRequest;
 import com.ciudaddeportiva.api.model.Rol;
@@ -20,13 +20,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-//Escucha peticiones POST en:
-//http://localhost:8080/api/usuarios/register
-
 //Recibe un objeto Usuario en formato JSON
-//Llama al UsuarioService para registrar al usuario
-//Devuelve un mensaje de éxito o error
+//usa UsuarioService para registrar al usuario
+//devuelve mensaje
 
+//gestiona toodo lo relacionado con los usuarios
 @RestController
 @RequestMapping("/api/usuarios")
 @CrossOrigin(origins = "*")
@@ -44,7 +42,7 @@ public class UsuarioController {
         return usuarioRepository.findByRol(Rol.jugador);
     }
 
-    // LOGIN
+    //LOGIN
     @PostMapping("/login")
     public ResponseEntity<?> loginUsuario(@RequestBody Map<String, String> loginData) {
         try {
@@ -71,57 +69,51 @@ public class UsuarioController {
         }
     }
 
-    // REGISTRO
+    //registro
     @PostMapping("/register")
     public ResponseEntity<?> registrarUsuario(@RequestBody LoginRequest request) {
 
-        // 1) Validar contraseña ≥ 6
+        //contraseña larga (>6)
         if (request.getPassword() == null || request.getPassword().length() < 6) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Collections.singletonMap("error", "La contraseña debe tener al menos 6 caracteres"));
         }
 
-        // 2) Comprobar si ya existe
+        //se mria si ya exixte
         Optional<Usuario> existente = usuarioService.buscarPorEmail(request.getEmail());
         if (existente.isPresent()) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body(Collections.singletonMap("message", "El usuario ya existe"));
         }
 
-        // 3) Rol auto si es admin
+        //si es admin
         String rol = request.getEmail().equalsIgnoreCase("admin@cdcaballero.com") ? "admin" : request.getRol();
 
-        // 4) Crear nuevo usuario
+        //para crear usuario
         Usuario nuevo = new Usuario();
         nuevo.setEmail(request.getEmail());
         nuevo.setPassword(request.getPassword());
         nuevo.setRol(Rol.valueOf(rol));
 
-        // 5) Guardar
+        //se guarda
         usuarioService.guardar(nuevo);
 
         return ResponseEntity.ok(Collections.singletonMap("message", "Usuario registrado con éxito"));
     }
 
+    //estadísitcas
     @GetMapping("/stats")
     public List<UsuarioStatsDTO> estadisticasUsuarios() {
         return usuarioService.obtenerEstadisticasUsuarios();
     }
 
+    //esto no funciona
     @GetMapping("/jugadores-disponibles")
     public List<Usuario> jugadoresDisponibles(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)  LocalDate fecha,
             @RequestParam @DateTimeFormat(pattern = "HH:mm")LocalTime hora) {
         return usuarioService.jugadoresDisponibles(fecha, hora);
     }
-
-   /* @GetMapping("/jugadores-disponibles")
-    public List<Usuario> jugadoresDisponibles(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha,
-            @RequestParam @DateTimeFormat(pattern = "HH:mm") LocalTime hora) {
-        return usuarioService.jugadoresDisponibles(fecha, hora);
-    }*/
-
 
     //para borrar el usuario
     @DeleteMapping("/{id}")
@@ -133,7 +125,7 @@ public class UsuarioController {
             return ResponseEntity.ok(Map.of("message", "Usuario eliminado por sí mismo"));
         }
 
-        // Si lo hace el admin, comprobamos su rol
+        //si es admin, comprobamos su rol
         Usuario admin = usuarioService.findById(adminId);
         if (admin.getRol() != Rol.admin)
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -142,19 +134,7 @@ public class UsuarioController {
         return ResponseEntity.ok(Map.of("message", "Usuario eliminado por admin"));
     }
 
-
-
-    // GET /api/usuarios   (solo admin)
-    @GetMapping
-    public ResponseEntity<?> listarTodos(@RequestParam Long adminId) {
-        Usuario admin = usuarioService.findById(adminId);
-        if (admin.getRol() != Rol.admin) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(Map.of("error","Solo el admin puede ver todos los usuarios"));
-        }
-        return ResponseEntity.ok(usuarioRepository.findAll());
-    }
-
+    //para listarle todos los usuarios al admin
     @GetMapping("/admin/listado")
     public List<UsuarioStatsDTO> listadoAdmin(@RequestParam Long adminId) {
         if (usuarioService.findById(adminId).getRol() != Rol.admin) {

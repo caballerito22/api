@@ -1,5 +1,6 @@
-package com.ciudaddeportiva.api.controller;
+package com.ciudaddeportiva.api.controllerLogica;
 
+import com.ciudaddeportiva.api.estado.EstadoPartido;
 import com.ciudaddeportiva.api.model.*;
 import com.ciudaddeportiva.api.repository.PartidoRepository;
 import com.ciudaddeportiva.api.service.PartidoService;
@@ -15,8 +16,7 @@ import java.time.LocalTime;
 import java.util.Collections;
 import java.util.List;
 
-import static com.ciudaddeportiva.api.model.Rol.entrenador;
-
+//gestiona toodo lo relacionado con las reservas (hasta las horas en rojo al crear partido)
 @RestController
 @RequestMapping("/api/partidos")
 @CrossOrigin(origins = "*")
@@ -27,30 +27,30 @@ public class PartidoController {
     @Autowired private PartidoRepository partidoRepository;
 
 
-    /* ---------- crear partido / entrenamiento ---------- */
+    //se crea partido o entrenamiento
     @PostMapping("/crear")
     public ResponseEntity<?> crearPartido(@RequestBody PartidoRequest req) {
         try {
-            // 1) Parsear fecha y hora
-            LocalDate fecha = LocalDate.parse(req.getFecha());   // "2025-05-23"
-            LocalTime hora  = LocalTime.parse(req.getHora());    // "17:30"
+            //se paresa la fecha y la hora
+            LocalDate fecha = LocalDate.parse(req.getFecha());
+            LocalTime hora  = LocalTime.parse(req.getHora());
 
-            // 2) Recuperar el usuario creador
+            //para ver quien lo crea
             Usuario creador = usuarioService.findById(req.getUsuarioId());
 
-            // 3) Crear el partido (con posibles convocados)
+            //crar partido (con posibles convocados)
             Partido partido = partidoService.crearPartido(
                     fecha,
                     hora,
                     req.getCampo(),
                     req.getEquipoLocal(),
                     req.getEquipoVisitante(),
-                    creador,                       // <-- Usuario, no Rol
+                    creador,                       //usuario que lo crea
                     req.getTipoReserva(),
-                    req.getConvocados()            // lista de Long con IDs de jugadores
+                    req.getConvocados()            //lista de los ID de los jugadores
             );
 
-            // 4) Respuesta OK
+            //si esta bien
             return ResponseEntity.ok(partido);
 
         } catch (RuntimeException e) {
@@ -59,13 +59,13 @@ public class PartidoController {
         }
     }
 
-    /* ---------- mis partidos (entrenador / jugador) ---------- */
+    //función para ver los partidos propios de jug. o ent.
     @GetMapping("/mis/{userId}")
     public List<Partido> obtenerMisPartidos(@PathVariable Long userId) {
         return partidoService.getPartidosByUsuario(userId);
     }
 
-    /* ---------- todos los partidos (solo admin) ---------- */
+    //todos los partidos solo para el administrador
     @GetMapping("/todos")
     public ResponseEntity<?> todosPartidos(@RequestParam Long userId) {
         Usuario u = usuarioService.findById(userId);
@@ -77,7 +77,7 @@ public class PartidoController {
     }
 
 
-    /* ---------- cambiar estado ---------- */
+    //el administrador cabia el esztado
     @PatchMapping("/estado")
     public ResponseEntity<?> cambiarEstado(@RequestBody CambiarEstadoRequest r){
         partidoService.cambiarEstado(r.getPartidoId(),
@@ -85,30 +85,26 @@ public class PartidoController {
         return ResponseEntity.ok(Collections.singletonMap("message","Estado actualizado"));
     }
 
-    // ✅ Nuevo método para jugadores: lista pública
+    //metodo para ver todos los partidos para los jugadores
     @GetMapping("/publicos")
     public List<Partido> partidosPublicos() {
         return partidoService.getAllPartidos();
     }
 
-    /* ---------- Horarios ocupados para un día específico ---------- */
+    //horas en rojo para un dia al crear partido
     @GetMapping("/ocupados")
     public ResponseEntity<?> obtenerHorariosOcupados(
             @RequestParam
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate fecha,
-            @RequestParam(required = false) String campo) {          // ← nuevo parámetro opcional
-
+            @RequestParam(required = false) String campo) {
         try {
-            System.out.println("✔ Fecha recibida: " + fecha +
-                    (campo != null ? " | campo=" + campo : ""));
-
-            /* ── 1. Recuperar partidos ── */
+            //se cogen los partidos
             List<Partido> partidos = (campo == null || campo.isBlank())
                     ? partidoService.getPartidosPorFecha(fecha)
                     : partidoService.getPartidosPorFechaYCampo(fecha, campo);
 
-            /* ── 2. Mapear a intervalos ocupados ── */
+            //es mapean las horas ocupadas
             List<HorarioOcupadoResponse> horarios = partidos.stream()
                     .map(p -> {
                         var ini = p.getHora().truncatedTo(java.time.temporal.ChronoUnit.SECONDS);
@@ -116,17 +112,15 @@ public class PartidoController {
                         /* Duración según campo */
                         int duracionMin;
                         String c = p.getCampo().toLowerCase();
-                        if (c.contains("f11"))      duracionMin = 120;   // 2 h
-                        else if (c.contains("f8"))  duracionMin =  80;   // 1 h 20 min
-                        else                        duracionMin =  90;   // por defecto
+                        if (c.contains("f11"))      duracionMin = 120;   //2 h los de F11
+                        else if (c.contains("f8"))  duracionMin =  80;   //esto los F8 1 h 20 min
+                        else                        duracionMin =  90;   //por defecto (entrene)
 
                         var fin = ini.plusMinutes(duracionMin);
                         return new HorarioOcupadoResponse(ini.toString(), fin.toString());
                     })
                     .toList();
-
             return ResponseEntity.ok(horarios);
-
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity
@@ -136,6 +130,7 @@ public class PartidoController {
         }
     }
 
+    //para que el admin elimine partido
     @DeleteMapping("/partido/{id}")
     public ResponseEntity<?> eliminarPartido(@PathVariable Long id) {
         if (!partidoRepository.existsById(id)) {

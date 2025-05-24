@@ -1,4 +1,4 @@
-package com.ciudaddeportiva.api.controller;
+package com.ciudaddeportiva.api.controllerLogica;
 
 import com.ciudaddeportiva.api.model.Convocatoria;
 import com.ciudaddeportiva.api.service.ConvocatoriaService;
@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+//clase que permite convocar a jugadores y ver los convocados de un partido
 @RestController
 @RequestMapping("/api/convocatorias")
 public class ConvocatoriaController {
@@ -30,15 +31,11 @@ public class ConvocatoriaController {
         return ResponseEntity.ok(convocatoriaService.obtenerConvocatoriasPorPartido(partidoId));
     }
 
-    //para ver quién ha sido convocado a un partido (jugador)
+    //para ver los partidos del jugador
     @GetMapping("/jugador/{jugadorId}")
     public ResponseEntity<List<Convocatoria>> obtenerConvocatoriasPorJugador(@PathVariable Long jugadorId) {
         return ResponseEntity.ok(convocatoriaService.obtenerConvocatoriasPorJugador(jugadorId));
     }
 
-    @DeleteMapping("/{convocatoriaId}")
-    public ResponseEntity<?> eliminarConvocatoria(@PathVariable Long convocatoriaId) {
-        convocatoriaService.eliminarConvocatoria(convocatoriaId);
-        return ResponseEntity.ok().build();
-    }
+
 }

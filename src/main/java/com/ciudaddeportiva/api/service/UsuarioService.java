@@ -28,14 +28,6 @@ public class UsuarioService {
     private ConvocatoriaRepository convocatoriaRepository;
 
 
-    // Registro de nuevo usuario
-    public String registrar(Usuario usuario) {
-        if (usuarioRepository.existsByEmail(usuario.getEmail())) {
-            return "El email ya está en uso";
-        }
-        usuarioRepository.save(usuario);
-        return "Usuario registrado correctamente como " + usuario.getRol();
-    }
 
     // Login
     public Usuario login(String email, String password) {

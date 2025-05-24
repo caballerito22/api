@@ -1,6 +1,5 @@
 package com.ciudaddeportiva.api.estado;
 
-import com.ciudaddeportiva.api.model.EstadoPartido;   //  ←  IMPORT CORRECTO
 import com.ciudaddeportiva.api.model.Partido;
 import com.ciudaddeportiva.api.repository.PartidoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,14 +16,14 @@ public class PartidoScheduler {
     @Autowired
     private PartidoRepository repo;
 
-    /**  Cada 5 min marca como «jugado» lo que ya terminó  */
+    //esta clse se encarga de marcar el partido como jugado si asi ha sido
     @Scheduled(fixedRate = 300_000)
     public void cerrarPartidosPendientes() {
 
         LocalDate hoy   = LocalDate.now();
         LocalTime ahora = LocalTime.now();
 
-        // --- usamos el enum, NO la DTO ---
+        //se usa la clase enum
         List<Partido> pendientes = repo.findByEstado(EstadoPartido.pendiente);
 
         for (Partido p : pendientes) {
@@ -38,7 +37,7 @@ public class PartidoScheduler {
             if (p.getFecha().isBefore(hoy) ||
                     (p.getFecha().isEqual(hoy) && fin.isBefore(ahora))) {
 
-                p.setEstado(EstadoPartido.jugado);   // ← enum
+                p.setEstado(EstadoPartido.jugado);
                 repo.save(p);
             }
         }

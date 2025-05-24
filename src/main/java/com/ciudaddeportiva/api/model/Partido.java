@@ -1,5 +1,6 @@
 package com.ciudaddeportiva.api.model;
 
+import com.ciudaddeportiva.api.estado.EstadoPartido;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;

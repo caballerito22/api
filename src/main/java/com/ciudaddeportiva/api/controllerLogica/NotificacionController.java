@@ -1,4 +1,4 @@
-package com.ciudaddeportiva.api.controller;
+package com.ciudaddeportiva.api.controllerLogica;
 
 
 import com.ciudaddeportiva.api.service.NotificacionService;
@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.IOException;
 
 //controlador para enviar notificaciones manualmente
-//es un Endpoint REST para enviar notificaciones desde Postman, cURL o tu app móvil
+//es un Endpoint REST para enviar notificaciones
 @RestController
 @RequestMapping("/api/notificaciones")
 public class NotificacionController {

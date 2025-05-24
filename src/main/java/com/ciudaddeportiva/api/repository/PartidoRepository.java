@@ -1,6 +1,6 @@
 package com.ciudaddeportiva.api.repository;
 
-import com.ciudaddeportiva.api.model.EstadoPartido;
+import com.ciudaddeportiva.api.estado.EstadoPartido;
 import com.ciudaddeportiva.api.model.Partido;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.time.LocalDate;

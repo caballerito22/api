@@ -1,7 +1,7 @@
 package com.ciudaddeportiva.api.service;
 
 import com.ciudaddeportiva.api.model.Convocatoria;
-import com.ciudaddeportiva.api.model.EstadoPartido;
+import com.ciudaddeportiva.api.estado.EstadoPartido;
 import com.ciudaddeportiva.api.model.Partido;
 import com.ciudaddeportiva.api.model.Usuario;
 import com.ciudaddeportiva.api.repository.ConvocatoriaRepository;
@@ -97,7 +97,7 @@ public class PartidoService {
         }
 
         /* 4️⃣ Notificación */
-        String titulo = "Nueva " + tipoReserva;
+        String titulo = "Nuevo " + tipoReserva;
         String mensaje = equipoLocal + " vs " + equipoVisitante + " • " + fecha + " " + hora;
         try {
             System.out.println("=== DEBUG === Enviando notificación: " + titulo + " – " + mensaje);
@@ -109,9 +109,6 @@ public class PartidoService {
         }
 
         return guardado;
-
-
-
     }
 
     /**
