@@ -36,7 +36,7 @@ public class UsuarioController {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
-    // 👇 Añade esto dentro de la clase
+    //para ver los jugadores
     @GetMapping("/jugadores")
     public List<Usuario> getJugadores() {
         return usuarioRepository.findByRol(Rol.jugador);
@@ -49,7 +49,7 @@ public class UsuarioController {
             String email = loginData.get("email");
             String password = loginData.get("password");
 
-            // Validar contraseña ≥ 6 caracteres (además de la lógica de usuarioService)
+            //buena contraseña,  +6 caracteres
             if (password == null || password.length() < 6) {
                 return ResponseEntity.badRequest().body(
                         Collections.singletonMap("error", "La contraseña debe tener al menos 6 caracteres")
@@ -62,7 +62,7 @@ public class UsuarioController {
                     "message", "Login correcto",
                     "rol", usuario.getRol().toString(),
                     "id", usuario.getId(),
-                    "email", usuario.getEmail()  // ✅ AÑADIDO
+                    "email", usuario.getEmail()
             ));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
