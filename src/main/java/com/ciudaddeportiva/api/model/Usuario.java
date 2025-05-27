@@ -1,8 +1,6 @@
 package com.ciudaddeportiva.api.model;
 
 import jakarta.persistence.*;
-import com.ciudaddeportiva.api.model.Rol;
-
 
 //entidad JPA vinculada a la tabla usuarios
 //representa a un usuario del sistema (hay 3), incluye sus 4 cosas (R,PAS,EMA,ID)

@@ -5,14 +5,14 @@ import java.util.List;
 //clase que tiene los datos para crear un entrene/partido desde app
 public class PartidoRequest {
 
-    private String fecha;          // formato "2025-05-05"
-    private String hora;           // formato "18:00"
+    private String fecha;           //ej "2025-05-05"
+    private String hora;            //ej "18:00"
     private String campo;
     private String equipoLocal;
     private String equipoVisitante;
-    private String tipoReserva;   // "partido" o "entrenamiento"
-    private Long usuarioId;        // ID del usuario creador
-    private List<Long> convocados;          // ← NUEVO
+    private String tipoReserva;     //"partido" o "entrene"
+    private Long usuarioId;         //ID mister creador
+    private List<Long> convocados;  //lista de los que van conv.
 
 
     public String getFecha() {

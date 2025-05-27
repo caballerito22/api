@@ -1,4 +1,4 @@
-package com.ciudaddeportiva.api.controllerLogica;
+package com.ciudaddeportiva.api.controller;
 
 import com.ciudaddeportiva.api.estado.EstadoPartido;
 import com.ciudaddeportiva.api.model.*;
@@ -139,8 +139,4 @@ public class PartidoController {
         partidoRepository.deleteById(id);
         return ResponseEntity.ok().build();
     }
-
-
-
-
 }

@@ -1,4 +1,4 @@
-package com.ciudaddeportiva.api.controllerLogica;
+package com.ciudaddeportiva.api.controller;
 
 import com.ciudaddeportiva.api.model.LoginRequest;
 import com.ciudaddeportiva.api.model.Rol;

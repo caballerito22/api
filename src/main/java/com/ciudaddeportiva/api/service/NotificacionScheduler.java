@@ -14,7 +14,7 @@ public class NotificacionScheduler {
     @Autowired
     private NotificacionService notificacionService;
 
-    @Scheduled(cron = "0 0 * * * *")  // Cada hora
+    @Scheduled(cron = "0 0 * * * *")  //para que se haga cada hora
     public void enviarRecordatorios() {
         try {
             String titulo = "Recordatorio de Partido";
