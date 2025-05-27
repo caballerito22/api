@@ -109,7 +109,7 @@ public class PartidoController {
                     .map(p -> {
                         var ini = p.getHora().truncatedTo(java.time.temporal.ChronoUnit.SECONDS);
 
-                        /* Duración según campo */
+                        //cada campo tiene una duración
                         int duracionMin;
                         String c = p.getCampo().toLowerCase();
                         if (c.contains("f11"))      duracionMin = 120;   //2 h los de F11

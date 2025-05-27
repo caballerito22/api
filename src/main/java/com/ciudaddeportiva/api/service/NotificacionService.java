@@ -9,10 +9,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import java.io.IOException;
 
-// Servicio para enviar notificaciones push a OneSignal
+//enviar notificaciones push a OneSignal
 @Service
 public class NotificacionService {
 
+    //los ids de onesignal
     @Value("${onesignal.app_id}")
     private String appId;
 
@@ -22,7 +23,7 @@ public class NotificacionService {
     public void enviarNotificacion(String titulo, String mensaje, String imagenUrl) throws IOException {
         OkHttpClient client = new OkHttpClient();
 
-        // Construye el cuerpo del mensaje JSON
+        //construye el cuerpo del mensaje JSON -buscado-
         String jsonBody = "{"
                 + "\"app_id\": \"" + appId + "\","
                 + "\"included_segments\": [\"All\"],"
@@ -35,7 +36,7 @@ public class NotificacionService {
 
         jsonBody += "}";
 
-        // Construye la solicitud HTTP
+        //construye la solicitud HTTP
         RequestBody body = RequestBody.create(
                 jsonBody,
                 MediaType.parse("application/json; charset=utf-8")
@@ -48,7 +49,7 @@ public class NotificacionService {
                 .addHeader("Content-Type", "application/json")
                 .build();
 
-        // Envía la solicitud
+        //envia la solicitud y dice errores
         try (Response response = client.newCall(request).execute()) {
             String responseBody = response.body().string();
             if (response.isSuccessful()) {

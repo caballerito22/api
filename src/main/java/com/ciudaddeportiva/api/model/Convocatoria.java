@@ -3,6 +3,7 @@ package com.ciudaddeportiva.api.model;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+//esta entidad representa la convocatoria jugador - partido (relación usuario - partido)
 @Entity
 @Table(name = "convocatorias")
 public class Convocatoria {

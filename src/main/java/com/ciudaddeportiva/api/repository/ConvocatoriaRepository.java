@@ -10,12 +10,14 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
+//JpaRepository que gestiona jugadores convocados por reserva, y ver convocados por partido
+
 @Repository
 public interface ConvocatoriaRepository extends JpaRepository<Convocatoria, Long> {
     List<Convocatoria> findByPartidoId(Long partidoId);
     List<Convocatoria> findByJugadorId(Long jugadorId);
     boolean existsByPartidoIdAndJugadorId(Long partidoId, Long jugadorId);
-    /* IDs de jugadores ya ocupados en el intervalo exacto */
+    // ID jugadores ya ocupados en el intervalo -INTENTO-
     @Query("""
            select distinct c.jugador.id
            from Convocatoria c

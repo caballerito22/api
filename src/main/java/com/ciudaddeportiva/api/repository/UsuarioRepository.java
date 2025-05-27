@@ -16,10 +16,10 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     Optional<Usuario> findByEmail(String email);
     boolean existsByEmail(String email);
 
-    //para la convocatoria
+    //para encontar usuarios
     List<Usuario> findByRol(Rol rol);
 
-    /* Jugadores cuyo id NO está en la lista de ocupados */
+    //jugadores que no están ocupados
     @Query("""
            select u
            from Usuario u

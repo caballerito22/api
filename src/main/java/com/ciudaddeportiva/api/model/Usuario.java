@@ -5,6 +5,7 @@ import com.ciudaddeportiva.api.model.Rol;
 
 
 //entidad JPA vinculada a la tabla usuarios
+//representa a un usuario del sistema (hay 3), incluye sus 4 cosas (R,PAS,EMA,ID)
 
 @Entity
 public class
@@ -23,9 +24,6 @@ Usuario {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Rol rol;
-
-
-    // Getters y Setters
 
 
     public Long getId() {

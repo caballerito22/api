@@ -26,6 +26,7 @@ public class PartidoScheduler {
         //se usa la clase enum
         List<Partido> pendientes = repo.findByEstado(EstadoPartido.pendiente);
 
+        //para los partidos pendientes, si se han jugado se cambia
         for (Partido p : pendientes) {
 
             int duracion = p.getTipoReserva().equalsIgnoreCase("entrenamiento")

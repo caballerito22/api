@@ -6,6 +6,8 @@ import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+//clase que representa una reserva (P o E), junto a toodo lo que tiene (CREADOX,ESTADO,CAMPO..)
+
 @Entity
 public class Partido {
 
@@ -39,7 +41,6 @@ public class Partido {
     @JoinColumn(name = "creado_por", nullable = false)
     private Usuario creadoPor;
 
-    // Getters y Setters
     public Long getId() {
         return id;
     }

@@ -2,6 +2,7 @@ package com.ciudaddeportiva.api.model;
 
 import java.util.List;
 
+//clase que tiene los datos para crear un entrene/partido desde app
 public class PartidoRequest {
 
     private String fecha;          // formato "2025-05-05"
@@ -13,7 +14,6 @@ public class PartidoRequest {
     private Long usuarioId;        // ID del usuario creador
     private List<Long> convocados;          // ← NUEVO
 
-    // Getters y setters
 
     public String getFecha() {
         return fecha;

@@ -17,6 +17,8 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
+//lógica crear,consultar,validar reservas. validación de solapamientos...
+
 @Service
 public class PartidoService {
 
@@ -25,13 +27,10 @@ public class PartidoService {
     @Autowired private ConvocatoriaRepository convocatoriaRepo;   // ⭐️
     @Autowired private NotificacionService     notificacionService;
 
-    // minutos de margen antes/después de cada reserva
+    //descanos entre reservas para recojer
     private static final int BUFFER = 15;
 
-    /**
-     * Crea un nuevo partido o entrenamiento y dispara la notificación correspondiente.
-     */
-    /* ╔══════════════ CREAR PARTIDO + CONVOCADOS ═════════════╗ */
+    //crea el partido con los convocados y la noti
     public Partido crearPartido(LocalDate fecha,
                                 LocalTime hora,
                                 String campo,
@@ -41,16 +40,15 @@ public class PartidoService {
                                 String tipoReserva,
                                 List<Long> idsConvocados) {
 
-        System.out.println("=== DEBUG === Creando " + tipoReserva + " – " + equipoLocal + " vs " + equipoVisitante);
 
-
-        /* 1️⃣ Validaciones de fecha y hora */
+        //val. fecha y hora
         LocalDate hoy = LocalDate.now();
         LocalTime ahora = LocalTime.now();
         if (fecha.isBefore(hoy) || (fecha.isEqual(hoy) && hora.isBefore(ahora))) {
             throw new RuntimeException("No puedes crear reservas en el pasado");
         }
 
+        //horario de la cd
         DayOfWeek dia = fecha.getDayOfWeek();
         boolean esFinDeSemana = (dia == DayOfWeek.SATURDAY || dia == DayOfWeek.SUNDAY);
         LocalTime apertura = esFinDeSemana ? LocalTime.of(9, 0) : LocalTime.of(16, 0);
@@ -60,19 +58,21 @@ public class PartidoService {
         int duracionConBuffer = duracion + BUFFER;
         LocalTime ultimaHoraInicio = cierre.minusMinutes(duracionConBuffer);
 
+        //no entrene fds
         if (esFinDeSemana && tipoReserva.equalsIgnoreCase("entrenamiento")) {
             throw new RuntimeException("No se permiten entrenamientos en fin de semana (Sáb/Dom)");
         }
+        //out horario
         if (hora.isBefore(apertura) || hora.isAfter(ultimaHoraInicio)) {
             throw new RuntimeException("Hora inválida. Debe estar entre " + apertura + " y " + ultimaHoraInicio);
         }
 
-        /* 2️⃣ Solapamientos */
+        //si se solapa...
         if (haySolapamiento(fecha, hora, campo, tipoReserva)) {
             throw new RuntimeException("Ya existe una reserva que se solapa con ese horario y campo");
         }
 
-        /* ── 1. Persistir partido ── */
+        //se guarda la reserva
         Partido p = new Partido();
         p.setFecha(fecha); p.setHora(hora); p.setCampo(campo);
         p.setEquipoLocal(equipoLocal); p.setEquipoVisitante(equipoVisitante);
@@ -80,27 +80,28 @@ public class PartidoService {
         p.setTipoReserva(tipoReserva);
         Partido guardado = partidoRepo.save(p);
 
-        /* ── 2. Persistir convocatorias (si vienen IDs) ── */
+        //para la convocatoria
         if (idsConvocados != null && !idsConvocados.isEmpty()) {
             List<Convocatoria> lot = new ArrayList<>();
             for (Long idJugador : idsConvocados) {
                 Usuario jugador = usuarioRepo.findById(idJugador)
-                        .orElseThrow(() -> new RuntimeException("Jugador no existe: " + idJugador));
+                        //nunca aparece si all va bien
+                        .orElseThrow(() -> new RuntimeException("No hay jugador"));
 
+                //se añade toodo y se guarda
                 Convocatoria c = new Convocatoria();
                 c.setPartido(guardado);
                 c.setJugador(jugador);
-                c.setFechaConvocatoria(LocalDateTime.now()); // o LocalDateTime.now()
+                c.setFechaConvocatoria(LocalDateTime.now());
                 lot.add(c);
             }
             convocatoriaRepo.saveAll(lot);
         }
 
-        /* 4️⃣ Notificación */
+        //se encarga de notificar
         String titulo = "Nuevo " + tipoReserva;
         String mensaje = equipoLocal + " vs " + equipoVisitante + " • " + fecha + " " + hora;
         try {
-            System.out.println("=== DEBUG === Enviando notificación: " + titulo + " – " + mensaje);
             notificacionService.enviarNotificacion(titulo, mensaje, null);
             System.out.println("=== DEBUG === Notificación enviada con éxito");
         } catch (Exception e) {
@@ -111,9 +112,7 @@ public class PartidoService {
         return guardado;
     }
 
-    /**
-     * Cambia el estado de un partido y notifica a los implicados.
-     */
+    //cambia estado reserva, se notif, y se cambia el balance automatic.
     public void cambiarEstado(Long id, EstadoPartido nuevo) {
         Partido p = partidoRepo.findById(id).orElseThrow(() -> new RuntimeException("Partido no encontrado"));
         p.setEstado(nuevo);
@@ -124,18 +123,17 @@ public class PartidoService {
         switch (nuevo) {
             case jugado:
                 titulo = "Partido jugado";
-                msg = "Tu partido del " + p.getFecha() + " a las " + p.getHora() + " ha sido marcado como jugado.";
+                msg = "Partido del " + p.getFecha() + " a las " + p.getHora() + " jugado.";
                 break;
             case cancelado:
                 titulo = "Partido cancelado";
-                msg = "Se canceló el partido " + p.getEquipoLocal() + " vs " + p.getEquipoVisitante();
+                msg = "Cancrelado el partido " + p.getEquipoLocal() + " vs " + p.getEquipoVisitante();
                 break;
             default:
-                return; // otros estados no generan notificación
+                return;
         }
 
         try {
-            System.out.println("=== DEBUG === Enviando notificación de cambio de estado: " + titulo);
             notificacionService.enviarNotificacion(titulo, msg, null);
             System.out.println("=== DEBUG === Notificación de cambio de estado enviada");
         } catch (Exception e) {
@@ -144,9 +142,7 @@ public class PartidoService {
         }
     }
 
-    /**
-     * Comprueba si la nueva reserva se solapa con otras o no deja margen suficiente.
-     */
+    //mira si se solapa (ya hay otra)
     public boolean haySolapamiento(LocalDate fecha, LocalTime horaInicioNuevo, String campoNuevo, String tipoReserva) {
         int duracionNuevo = tipoReserva.equalsIgnoreCase("entrenamiento") ? 90 : getDuracionPartido(campoNuevo);
         LocalTime horaFinNuevo = horaInicioNuevo.plusMinutes(duracionNuevo);
@@ -168,13 +164,15 @@ public class PartidoService {
         return false;
     }
 
+    //lo que duran los partidos
     private int getDuracionPartido(String campo) {
         campo = campo.toLowerCase();
-        if (campo.contains("f11")) return 120; // 2h
-        if (campo.contains("f8")) return 80;  // 1h20
-        return 90; // default
+        if (campo.contains("f11")) return 120; //2h
+        if (campo.contains("f8")) return 80;  //1h20
+        return 90; //entrenamiento
     }
 
+    //si el nuevo ya existe..
     private boolean camposEnConflicto(String nuevo, String existente) {
         nuevo = nuevo.toLowerCase().trim();
         existente = existente.toLowerCase().trim();
@@ -187,21 +185,25 @@ public class PartidoService {
         return false;
     }
 
+    //los partidos creado por x mistre...
     public List<Partido> getPartidosByUsuario(Long userId) {
         return partidoRepo.findByCreadoPor_Id(userId);
     }
 
+    //solo todos los partidos
     public List<Partido> getAllPartidos() {
         return partidoRepo.findAll();
     }
 
+    //solo todos los partidos con la fecha
     public List<Partido> getPartidosPorFecha(LocalDate fecha) {
         return partidoRepo.findByFecha(fecha);
     }
 
-    // PartidoService.java
+    //todos las reservas por fecha y campo
     public List<Partido> getPartidosPorFechaYCampo(LocalDate fecha, String campo) {
         return partidoRepo.findByFechaAndCampoIgnoreCase(fecha, campo);
     }
+    //hay 3 metod. diferentes para obtener reservas,porque dependiendo el caso se usa uno u otro
 
 }

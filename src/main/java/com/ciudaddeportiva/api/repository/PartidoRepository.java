@@ -7,24 +7,23 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
+//JpaRepository gestiona reservas. FILTRA Y COMPRUEBA SOLAPAMIENTOS
+
 public interface PartidoRepository extends JpaRepository<Partido, Long> {
 
-    // Para detectar un partido exactamente en la misma fecha y hora
-    List<Partido> findByFechaAndHora(LocalDate fecha, LocalTime hora);
-
-    // Para ver todos los partidos del día y comprobar solapamientos
+    //ver los partidos del día y comprobar solapamientos
     List<Partido> findByFecha(LocalDate fecha);
 
-    // Devuelve todos los partidos que creó un usuario dado
+    //todos los partidos creados x usuario
     List<Partido> findByCreadoPor_Id(Long userId);
 
-    /** usado por el scheduler */
+    // usando el scheduler mira el estado
     List<Partido> findByEstado(EstadoPartido estado);
 
-    // PartidoRepository.java
+    //encuentra PartidosPorFechaYCampo
     List<Partido> findByFechaAndCampoIgnoreCase(LocalDate fecha, String campo);
 
-    // Cuenta los partidos donde el campo creadoPor tiene ese ID
+    //cuenta los partidos creados por ese mnister
     int countByCreadoPor_Id(Long id);
 
 

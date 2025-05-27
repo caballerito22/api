@@ -1,11 +1,13 @@
 package com.ciudaddeportiva.api.model;
 
+//DTO - estadísticas por usuario: email, rol y reservas que ha hecho (jugador -)
+
 public class UsuarioStatsDTO {
 
     private Long id;
     private String email;
     private String rol;
-    private Integer reservas;   // null  →  “-” en la app
+    private Integer reservas;
 
     public UsuarioStatsDTO(Long id, String email, String rol, Integer reservas) {
         this.id = id;

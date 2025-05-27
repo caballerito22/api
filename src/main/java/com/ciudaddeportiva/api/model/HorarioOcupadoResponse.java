@@ -1,5 +1,7 @@
 package com.ciudaddeportiva.api.model;
 
+//modelo usado para las horas ocupadas de un capo, con el día de la reserva marcado
+
 public class HorarioOcupadoResponse {
     private String horaInicio;
     private String horaFin;

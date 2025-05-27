@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+//lógica de usuarios,login,registro,validación...
+
 @Service
 public class UsuarioService {
 
@@ -24,12 +26,11 @@ public class UsuarioService {
     @Autowired
     private PartidoRepository partidoRepository;
 
-    @Autowired                          // 🔹 añade la inyección que faltaba
+    @Autowired
     private ConvocatoriaRepository convocatoriaRepository;
 
-
-
-    // Login
+    //login
+    //si no existe el email
     public Usuario login(String email, String password) {
         Optional<Usuario> usuarioOpt = usuarioRepository.findByEmail(email);
         if (usuarioOpt.isEmpty()) {
@@ -43,22 +44,23 @@ public class UsuarioService {
         return usuario;
     }
 
-    // Buscar por email
+    //busca x email para el registro
     public Optional<Usuario> buscarPorEmail(String email) {
         return usuarioRepository.findByEmail(email);
     }
 
+    //guarda si se registra
     public void guardar(Usuario usuario) {
         usuarioRepository.save(usuario);
     }
 
-    // --- CORREGIDO: usar Long como tipo de ID ---
+    //busca los usuarios
     public Usuario findById(Long id) {
         return usuarioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + id));
     }
 
-    // Estadísticas globales de usuarios
+    //stats usuarios
     public List<UsuarioStatsDTO> obtenerEstadisticasUsuarios() {
         List<Usuario> usuarios = usuarioRepository.findAll();
 
@@ -71,16 +73,17 @@ public class UsuarioService {
                 .collect(Collectors.toList());
     }
 
+    //intento al convocar
     public List<Usuario> jugadoresDisponibles(LocalDate fecha, LocalTime hora) {
         List<Long> ocupados = convocatoriaRepository.findJugadoresOcupados(fecha, hora);
         return usuarioRepository.findJugadoresLibres(Rol.jugador,
                 ocupados.isEmpty() ? null : ocupados);
     }
 
-    //para borrar el usuario
+    //para borrar el usuario -si no está convocado o tiene partidos creados con jugadores convocados
     public void deleteById(Long id) { usuarioRepository.deleteById(id); }
 
-    // UsuarioService.java   (método nuevo)
+    //muestra las cosas al gestionar usu para el admin
     public List<UsuarioStatsDTO> listadoAdmin() {
         return usuarioRepository.findAll().stream()
                 .map(u -> {

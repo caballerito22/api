@@ -13,6 +13,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+//conv. jugadores a partidos: añadir, quitar y consultar convocados.
+
 @Service
 public class ConvocatoriaService {
 
@@ -25,6 +27,7 @@ public class ConvocatoriaService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
+    //para conv.
     public Convocatoria convocarJugador(Long partidoId, Long jugadorId) throws Exception {
         if (convocatoriaRepository.existsByPartidoIdAndJugadorId(partidoId, jugadorId)) {
             throw new Exception("El jugador ya está convocado para este partido.");
@@ -33,6 +36,7 @@ public class ConvocatoriaService {
         Optional<Partido> partidoOpt = partidoRepository.findById(partidoId);
         Optional<Usuario> jugadorOpt = usuarioRepository.findById(jugadorId);
 
+        //si está vaiío (no aarece nunca)
         if (partidoOpt.isEmpty() || jugadorOpt.isEmpty()) {
             throw new Exception("Partido o jugador no encontrado.");
         }
@@ -44,10 +48,12 @@ public class ConvocatoriaService {
         return convocatoriaRepository.save(convocatoria);
     }
 
+    //futuro
     public List<Convocatoria> obtenerConvocatoriasPorPartido(Long partidoId) {
         return convocatoriaRepository.findByPartidoId(partidoId);
     }
 
+    //para que el jug pueda ver los partidos a los que está conv.
     public List<Convocatoria> obtenerConvocatoriasPorJugador(Long jugadorId) {
         return convocatoriaRepository.findByJugadorId(jugadorId);
     }
