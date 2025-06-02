@@ -24,7 +24,7 @@ public class PartidoService {
 
     @Autowired private PartidoRepository       partidoRepo;
     @Autowired private UsuarioRepository usuarioRepo;
-    @Autowired private ConvocatoriaRepository convocatoriaRepo;   // ⭐️
+    @Autowired private ConvocatoriaRepository convocatoriaRepo;
     @Autowired private NotificacionService     notificacionService;
 
     //descanos entre reservas para recojer
